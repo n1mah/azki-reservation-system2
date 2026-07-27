@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/reservations")
+@Tag(name = "Reservations", description = "Reserve and cancel the nearest available slot")
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -32,6 +35,7 @@ public class ReservationController {
     }
 
     @PostMapping
+    @Operation(summary = "Reserve the nearest available slot for the authenticated user")
     public ResponseEntity<ReservationResponse> reserve(
             @AuthenticationPrincipal AuthenticatedUser currentUser,
             @RequestBody(required = false) ReservationRequest request) {
@@ -43,6 +47,7 @@ public class ReservationController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Cancel a reservation owned by the authenticated user")
     public ResponseEntity<Void> cancel(
             @AuthenticationPrincipal AuthenticatedUser currentUser,
             @PathVariable Long id) {

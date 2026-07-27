@@ -44,3 +44,9 @@ logging:
   level:
     com.azki.reservation: INFO
     org.hibernate.SQL: WARN
+  
+  springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
