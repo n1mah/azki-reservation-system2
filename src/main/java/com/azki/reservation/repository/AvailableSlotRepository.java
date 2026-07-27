@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public interface AvailableSlotRepository extends JpaRepository<AvailableSlot, Long> {
 
-    @Query(value = """
-            SELECT * FROM available_slots
+@Query(value = """
+            SELECT * FROM available_slots USE INDEX (idx_slots_reserved_start)
             WHERE is_reserved = false
               AND start_time >= :from
             ORDER BY start_time ASC
@@ -20,6 +20,6 @@ public interface AvailableSlotRepository extends JpaRepository<AvailableSlot, Lo
             FOR UPDATE SKIP LOCKED
             """, nativeQuery = true)
     Optional<AvailableSlot> findAndLockNearestAvailableSlot(@Param("from") LocalDateTime from);
-
+    
     List<AvailableSlot> findTop20ByReservedFalseAndStartTimeGreaterThanEqualOrderByStartTimeAsc(LocalDateTime from);
 }
