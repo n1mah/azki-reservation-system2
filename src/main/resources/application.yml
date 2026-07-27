@@ -4,7 +4,9 @@ server:
 spring:
   application:
     name: reservation-system
-
+  jackson:
+      default-property-inclusion: non_null
+      
   datasource:
     url: jdbc:mysql://localhost:3306/azki_reservation?useSSL=false&serverTimezone=UTC&rewriteBatchedStatements=true
     username: root
