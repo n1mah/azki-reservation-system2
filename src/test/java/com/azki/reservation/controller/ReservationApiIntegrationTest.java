@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -129,6 +129,24 @@ class ReservationApiIntegrationTest {
                 .andExpect(jsonPath("$.errors[0].field").value("email"));
     }
 
+    @Test
+    @DisplayName("Listing available slots returns the seeded slots")
+    void listAvailableSlots() throws Exception {
+        mockMvc.perform(get("/api/reservations/available")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").isNumber())
+                .andExpect(jsonPath("$[0].startTime").exists());
+    }
+
+    @Test
+    @DisplayName("Listing available slots without a token is rejected")
+    void listAvailableSlotsWithoutTokenIsRejected() throws Exception {
+        mockMvc.perform(get("/api/reservations/available"))
+                .andExpect(status().isUnauthorized());
+    }
+    
     private void createSlots(int count) {
         LocalDateTime base = LocalDateTime.now().plusHours(1);
         for (int i = 0; i < count; i++) {
