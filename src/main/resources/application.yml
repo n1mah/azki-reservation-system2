@@ -4,9 +4,7 @@ server:
 spring:
   application:
     name: reservation-system
-  jackson:
-      default-property-inclusion: non_null
-      
+
   datasource:
     url: jdbc:mysql://localhost:3306/azki_reservation?useSSL=false&serverTimezone=UTC&rewriteBatchedStatements=true
     username: root
@@ -35,18 +33,31 @@ spring:
       mode: always
       continue-on-error: false
 
+  cache:
+    type: redis
+    redis:
+      time-to-live: 5000
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  jackson:
+    default-property-inclusion: non_null
+
 app:
   jwt:
     secret: "${JWT_SECRET:local-development-secret-do-not-use-in-production-0123456789}"
     expiration-ms: 3600000
 
-logging:
-  level:
-    com.azki.reservation: INFO
-    org.hibernate.SQL: WARN
-  
-  springdoc:
+springdoc:
   swagger-ui:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+
+logging:
+  level:
+    com.azki.reservation: INFO
+    org.hibernate.SQL: WARN

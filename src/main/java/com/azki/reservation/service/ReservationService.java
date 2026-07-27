@@ -1,5 +1,6 @@
 package com.azki.reservation.service;
 
+import com.azki.reservation.dto.AvailableSlotResponse;
 import com.azki.reservation.entity.AvailableSlot;
 import com.azki.reservation.entity.Reservation;
 import com.azki.reservation.entity.ReservationStatus;
@@ -8,15 +9,20 @@ import com.azki.reservation.exception.NoAvailableSlotException;
 import com.azki.reservation.exception.ReservationNotFoundException;
 import com.azki.reservation.repository.AvailableSlotRepository;
 import com.azki.reservation.repository.ReservationRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ReservationService {
+
+    private static final String AVAILABLE_SLOTS_CACHE = "availableSlots";
 
     private final AvailableSlotRepository slotRepository;
     private final ReservationRepository reservationRepository;
@@ -28,6 +34,7 @@ public class ReservationService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    @CacheEvict(cacheNames = AVAILABLE_SLOTS_CACHE, allEntries = true)
     public ReservationResult reserveNearestSlot(Long userId, LocalDateTime earliestFrom) {
         LocalDateTime searchFrom = earliestFrom != null ? earliestFrom : LocalDateTime.now();
 
@@ -52,6 +59,7 @@ public class ReservationService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = AVAILABLE_SLOTS_CACHE, allEntries = true)
     public void cancelReservation(Long reservationId, Long userId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
@@ -72,6 +80,15 @@ public class ReservationService {
             slot.setReserved(false);
             slotRepository.save(slot);
         });
+    }
+
+    @Cacheable(cacheNames = AVAILABLE_SLOTS_CACHE, key = "'nearest'")
+    public List<AvailableSlotResponse> listNearestAvailableSlots() {
+        return slotRepository
+                .findTop20ByReservedFalseAndStartTimeGreaterThanEqualOrderByStartTimeAsc(LocalDateTime.now())
+                .stream()
+                .map(slot -> new AvailableSlotResponse(slot.getId(), slot.getStartTime(), slot.getEndTime()))
+                .toList();
     }
 
     public record ReservationResult(Reservation reservation, AvailableSlot slot) {
