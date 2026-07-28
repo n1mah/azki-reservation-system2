@@ -23,7 +23,7 @@ docker compose up --build
 
 - وضعیت سلامت: `http://localhost:8080/actuator/health`
 
-```bash
+```bash 
 # ثبت‌نام و لاگین  (دریافت توکن)
 curl -s -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
